@@ -1,0 +1,10 @@
+/target
+
+# Local Claude Code settings (personal)
+/.claude/
+
+# Scratch / build logs
+*.log
+
+# App save file, if it ever lands in-tree (fallback path)
+/pawphone.json

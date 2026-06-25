@@ -1,0 +1,20 @@
+[package]
+name = "pawphone"
+version = "0.1.0"
+edition = "2024"
+description = "Paw Phone — powered by PawLink™. A fictional cat-to-cat satellite messenger. No cats were connected to space."
+
+[dependencies]
+eframe = "0.34"
+egui = "0.34"
+cpal = "0.18"
+ringbuf = "0.5"
+rand = "0.10"
+directories = "6"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+# A whimsical toy. The release profile keeps the synth tight and the binary small.
+[profile.release]
+opt-level = 3
+lto = "thin"
