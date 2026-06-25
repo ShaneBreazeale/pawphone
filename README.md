@@ -12,6 +12,11 @@ simulated on-device. That is an architectural invariant, not an afterthought.
 
 > *PawLink is a fictional constellation. No actual cats were connected to space.*
 
+![Paw Phone — the contacts screen](docs/screenshot.png)
+
+*Above: the contacts screen (a real capture of the running app). Below: the
+full-screen uplink HUD that takes over during a send —*
+
 ```
         PAWLINK UPLINK TERMINAL                🎩 Sir Whiskers
                   .      o
