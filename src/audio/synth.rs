@@ -171,13 +171,16 @@ impl Voice {
                 n * 0.09 * swell
             }
             // ── ping: 1.2kHz sine burst, exp decay, pitched by step ────────
-            Voice::Ping { t, dur: _, phase, freq } => {
+            Voice::Ping { t, dur, phase, freq } => {
                 *phase += TAU * *freq / sr;
                 if *phase > TAU {
                     *phase -= TAU;
                 }
                 let decay = (-(*t) * 9.0).exp();
-                let s = phase.sin() * decay * 0.45;
+                // Short release so the tail ramps to zero before done() drops
+                // the voice — otherwise the exp tail is still ~-40dBFS at cutoff
+                // and the hard stop clicks. Matches the click-free discipline.
+                let s = phase.sin() * decay * 0.45 * ar_env(*t, *dur, 0.0, 0.02);
                 *t += dt;
                 s
             }

@@ -150,6 +150,12 @@ impl PawLinkAudioEngine {
     }
 }
 
+/// Upper bound on samples per callback for the non-F32 conversion scratch.
+/// The buffer size is host-chosen (`BufferSize::Default`), so we pre-size
+/// generously rather than ever resize on the audio thread. 16384 samples =
+/// 8192 stereo frames, far above any realistic CoreAudio buffer.
+const MAX_SCRATCH_SAMPLES: usize = 16384;
+
 fn build_stream(
     device: &cpal::Device,
     config: cpal::StreamConfig,
@@ -165,18 +171,23 @@ fn build_stream(
             None,
         ),
         cpal::SampleFormat::I16 => {
-            // Reusable scratch, allocated once on first callback, then steady.
-            let mut scratch: Vec<f32> = Vec::new();
+            // Pre-sized once here on the main thread; the callback never
+            // allocates. An (unexpected) oversized buffer emits silence rather
+            // than resizing on the real-time audio thread.
+            let mut scratch = vec![0.0f32; MAX_SCRATCH_SAMPLES];
             device.build_output_stream(
                 config,
                 move |data: &mut [i16], _: &cpal::OutputCallbackInfo| {
-                    if scratch.len() < data.len() {
-                        scratch.resize(data.len(), 0.0);
-                    }
-                    let buf = &mut scratch[..data.len()];
-                    synth.render(buf);
-                    for (o, x) in data.iter_mut().zip(buf.iter()) {
-                        *o = (x.clamp(-1.0, 1.0) * i16::MAX as f32) as i16;
+                    if data.len() <= scratch.len() {
+                        let buf = &mut scratch[..data.len()];
+                        synth.render(buf);
+                        for (o, x) in data.iter_mut().zip(buf.iter()) {
+                            *o = (x.clamp(-1.0, 1.0) * i16::MAX as f32) as i16;
+                        }
+                    } else {
+                        for o in data.iter_mut() {
+                            *o = 0;
+                        }
                     }
                 },
                 err_fn,
@@ -184,18 +195,21 @@ fn build_stream(
             )
         }
         cpal::SampleFormat::U16 => {
-            let mut scratch: Vec<f32> = Vec::new();
+            let mut scratch = vec![0.0f32; MAX_SCRATCH_SAMPLES];
             device.build_output_stream(
                 config,
                 move |data: &mut [u16], _: &cpal::OutputCallbackInfo| {
-                    if scratch.len() < data.len() {
-                        scratch.resize(data.len(), 0.0);
-                    }
-                    let buf = &mut scratch[..data.len()];
-                    synth.render(buf);
-                    for (o, x) in data.iter_mut().zip(buf.iter()) {
-                        let v = (x.clamp(-1.0, 1.0) * 0.5 + 0.5) * u16::MAX as f32;
-                        *o = v as u16;
+                    if data.len() <= scratch.len() {
+                        let buf = &mut scratch[..data.len()];
+                        synth.render(buf);
+                        for (o, x) in data.iter_mut().zip(buf.iter()) {
+                            let v = (x.clamp(-1.0, 1.0) * 0.5 + 0.5) * u16::MAX as f32;
+                            *o = v as u16;
+                        }
+                    } else {
+                        for o in data.iter_mut() {
+                            *o = u16::MAX / 2;
+                        }
                     }
                 },
                 err_fn,

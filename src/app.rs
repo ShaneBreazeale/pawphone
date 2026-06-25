@@ -40,6 +40,11 @@ pub struct PawPhoneApp {
     pub hud_visible: bool,
     /// egui time at delivery; drives the success-HUD auto-hide.
     connected_at: Option<f64>,
+    /// A ceremony is dispatched and awaiting its outcome. Set on send/resend,
+    /// cleared when an outcome is applied. Suppresses the failure card's
+    /// RESEND/DISMISS buttons during the worker wake-up window so a second
+    /// click can't enqueue a duplicate ceremony.
+    pub(crate) busy: bool,
 
     // Live ceremony snapshot, refreshed each frame for the HUD.
     pub live_phase: PawLinkPhase,
@@ -74,6 +79,7 @@ impl PawPhoneApp {
             pending_cat_id: None,
             hud_visible: false,
             connected_at: None,
+            busy: false,
             live_phase: PawLinkPhase::Idle,
             live_signal: 0.0,
             live_telemetry: Vec::new(),
@@ -130,6 +136,7 @@ impl PawPhoneApp {
 
         self.hud_visible = true;
         self.connected_at = None;
+        self.busy = true;
         self.conn.send(SendRequest { cat, incoming: phrase.subtitle, profile: self.profile });
     }
 
@@ -158,6 +165,7 @@ impl PawPhoneApp {
         self.reload_thread();
         self.hud_visible = true;
         self.connected_at = None;
+        self.busy = true;
         self.conn.send(SendRequest { cat, incoming: msg.subtitle, profile: self.profile });
     }
 
@@ -202,6 +210,8 @@ impl PawPhoneApp {
     }
 
     fn apply_outcome(&mut self, outcome: Outcome, ctx: &egui::Context) {
+        // Any outcome means the in-flight ceremony has ended.
+        self.busy = false;
         let Some(id) = self.pending_message_id else { return };
         match outcome {
             Outcome::Delivered { reply } => {

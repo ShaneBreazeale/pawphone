@@ -78,8 +78,10 @@ impl PawPhoneApp {
             });
 
         // Interactive failure card (real widgets, not painter) over the HUD.
+        // Suppressed while a resend is in flight (`busy`) so its RESEND/DISMISS
+        // buttons can't be clicked again during the worker wake-up window.
         let failed = match &self.live_phase {
-            PawLinkPhase::Failed(e) => Some(*e),
+            PawLinkPhase::Failed(e) if !self.busy => Some(*e),
             _ => None,
         };
         if let Some(err) = failed {
