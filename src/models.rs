@@ -10,8 +10,6 @@ use crate::phase::PawLinkError;
 pub struct Cat {
     pub id: i64,
     pub name: String,
-    /// Single emoji avatar — no bundled image assets, on brand.
-    pub avatar: String,
     /// 0..1 signal-strength badge.
     pub signal: f32,
     pub status: CatStatus,

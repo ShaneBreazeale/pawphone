@@ -243,7 +243,7 @@ impl PawPhoneApp {
 
     fn header(&mut self, ui: &mut egui::Ui) {
         ui.horizontal(|ui| {
-            ui.heading(RichText::new("🐾 PAW PHONE").color(theme::GREEN));
+            ui.heading(RichText::new("=^.^= PAW PHONE").color(theme::GREEN));
             ui.label(RichText::new("powered by PawLink™").small().color(theme::GREEN_FAINT));
             ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
                 if ui.button("⚙ settings").clicked() {

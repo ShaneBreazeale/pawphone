@@ -32,8 +32,9 @@ fn render_row(ui: &mut egui::Ui, cat: &Cat) -> egui::Response {
     let inner = frame.show(ui, |ui| {
         ui.set_width(ui.available_width());
         ui.horizontal(|ui| {
-            ui.label(RichText::new(&cat.avatar).size(28.0));
-            ui.add_space(6.0);
+            let (av, _) = ui.allocate_exact_size(egui::vec2(36.0, 36.0), egui::Sense::hover());
+            theme::paint_cat(ui.painter(), av, theme::persona_color(cat.persona));
+            ui.add_space(8.0);
             ui.vertical(|ui| {
                 ui.label(RichText::new(&cat.name).color(theme::GREEN).strong());
                 ui.label(

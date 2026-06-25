@@ -3,6 +3,8 @@
 
 use egui::{Color32, FontFamily, FontId, TextStyle};
 
+use crate::models::CatPersona;
+
 pub const BG: Color32 = Color32::from_rgb(6, 12, 9);
 pub const PANEL: Color32 = Color32::from_rgb(10, 19, 14);
 pub const PANEL_HI: Color32 = Color32::from_rgb(16, 30, 22);
@@ -48,6 +50,63 @@ pub fn install(ctx: &egui::Context) {
         v.widgets.active.weak_bg_fill = GREEN_FAINT;
         v.widgets.active.fg_stroke = egui::Stroke::new(1.0, GREEN);
     });
+}
+
+/// A per-persona tint, so each cat's drawn avatar reads as a distinct character.
+pub fn persona_color(p: CatPersona) -> Color32 {
+    match p {
+        CatPersona::Aloof => GREEN_DIM,
+        CatPersona::Needy => CYAN,
+        CatPersona::Chaotic => AMBER,
+        CatPersona::FoodObsessed => GREEN,
+    }
+}
+
+/// Draw a little vector cat-face avatar inside `rect`, tinted `color`.
+///
+/// We draw it rather than rely on emoji: egui ships only a small *monochrome*
+/// emoji subset, so most emoji (🟠, 🧤, 🐱, 🐾 …) render as tofu boxes. A painted
+/// face always renders, scales cleanly, and suits the terminal look.
+pub fn paint_cat(painter: &egui::Painter, rect: egui::Rect, color: Color32) {
+    let c = rect.center();
+    let s = rect.width().min(rect.height());
+    let hr = s * 0.30; // head radius
+    let stroke = egui::Stroke::new((s * 0.05).max(1.0), color);
+    let ear_fill = Color32::from_rgba_unmultiplied(color.r(), color.g(), color.b(), 40);
+
+    // Ears (triangles), faintly filled + outlined.
+    let ear_h = hr;
+    let l = vec![
+        egui::pos2(c.x - hr * 0.78, c.y - hr * 0.30),
+        egui::pos2(c.x - hr * 0.55, c.y - hr * 0.30 - ear_h),
+        egui::pos2(c.x - hr * 0.05, c.y - hr * 0.55),
+    ];
+    let r = vec![
+        egui::pos2(c.x + hr * 0.78, c.y - hr * 0.30),
+        egui::pos2(c.x + hr * 0.55, c.y - hr * 0.30 - ear_h),
+        egui::pos2(c.x + hr * 0.05, c.y - hr * 0.55),
+    ];
+    painter.add(egui::Shape::convex_polygon(l, ear_fill, stroke));
+    painter.add(egui::Shape::convex_polygon(r, ear_fill, stroke));
+
+    // Head.
+    painter.circle_stroke(c, hr, stroke);
+
+    // Eyes + nose.
+    let eye_dx = hr * 0.42;
+    let eye_y = c.y - hr * 0.05;
+    let dot = (s * 0.04).max(1.0);
+    painter.circle_filled(egui::pos2(c.x - eye_dx, eye_y), dot, color);
+    painter.circle_filled(egui::pos2(c.x + eye_dx, eye_y), dot, color);
+    painter.circle_filled(egui::pos2(c.x, c.y + hr * 0.25), dot * 0.9, color);
+
+    // Whiskers.
+    let wy = c.y + hr * 0.25;
+    let wl = hr * 1.15;
+    painter.line_segment([egui::pos2(c.x - hr * 0.25, wy), egui::pos2(c.x - wl, wy - hr * 0.18)], stroke);
+    painter.line_segment([egui::pos2(c.x - hr * 0.25, wy), egui::pos2(c.x - wl, wy + hr * 0.22)], stroke);
+    painter.line_segment([egui::pos2(c.x + hr * 0.25, wy), egui::pos2(c.x + wl, wy - hr * 0.18)], stroke);
+    painter.line_segment([egui::pos2(c.x + hr * 0.25, wy), egui::pos2(c.x + wl, wy + hr * 0.22)], stroke);
 }
 
 /// Paint faint horizontal CRT scanlines over a rect. Cheap and atmospheric.

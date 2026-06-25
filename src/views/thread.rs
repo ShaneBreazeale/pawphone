@@ -21,7 +21,9 @@ impl PawPhoneApp {
                 self.screen = Screen::Contacts;
             }
             if let Some(c) = &cat {
-                ui.label(RichText::new(format!("{} {}", c.avatar, c.name)).color(theme::GREEN).strong());
+                let (av, _) = ui.allocate_exact_size(egui::vec2(22.0, 22.0), egui::Sense::hover());
+                theme::paint_cat(ui.painter(), av, theme::persona_color(c.persona));
+                ui.label(RichText::new(&c.name).color(theme::GREEN).strong());
                 ui.label(RichText::new(c.status.label()).small().color(theme::GREEN_DIM));
             }
         });

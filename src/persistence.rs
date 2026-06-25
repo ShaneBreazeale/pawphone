@@ -59,17 +59,16 @@ impl Store {
         if !self.db.cats.is_empty() {
             return;
         }
-        let seed: &[(&str, &str, f32, CatStatus, CatPersona)] = &[
-            ("Sir Whiskers", "🎩", 0.82, CatStatus::Online, CatPersona::Aloof),
-            ("Mittens", "🧤", 0.61, CatStatus::Napping, CatPersona::Needy),
-            ("The Orange One", "🟠", 0.95, CatStatus::Online, CatPersona::Chaotic),
-            ("Biscuit", "🍪", 0.40, CatStatus::Napping, CatPersona::FoodObsessed),
+        let seed: &[(&str, f32, CatStatus, CatPersona)] = &[
+            ("Sir Whiskers", 0.82, CatStatus::Online, CatPersona::Aloof),
+            ("Mittens", 0.61, CatStatus::Napping, CatPersona::Needy),
+            ("The Orange One", 0.95, CatStatus::Online, CatPersona::Chaotic),
+            ("Biscuit", 0.40, CatStatus::Napping, CatPersona::FoodObsessed),
         ];
-        for (idx, (name, avatar, signal, status, persona)) in seed.iter().enumerate() {
+        for (idx, (name, signal, status, persona)) in seed.iter().enumerate() {
             self.db.cats.push(Cat {
                 id: idx as i64 + 1,
                 name: name.to_string(),
-                avatar: avatar.to_string(),
                 signal: *signal,
                 status: *status,
                 persona: *persona,

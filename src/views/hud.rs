@@ -35,7 +35,7 @@ impl PawPhoneApp {
                 let cat_name = self
                     .pending_cat_id
                     .and_then(|id| self.cat(id))
-                    .map(|c| format!("{} {}", c.avatar, c.name))
+                    .map(|c| c.name)
                     .unwrap_or_default();
                 painter.text(
                     pos2(rect.right() - 20.0, rect.top() + 18.0),
@@ -151,10 +151,10 @@ fn draw_orbit(painter: &Painter, center: Pos2, phase: &PawLinkPhase, time: f32) 
     draw_ellipse(painter, center, rx, ry, theme::GREEN_FAINT);
     draw_ellipse(painter, center, rx * 0.66, ry * 0.66, theme::GREEN_FAINT);
 
-    // Central body (the cat, naturally).
+    // Central body (the cat, naturally) — drawn, not emoji.
     painter.circle_filled(center, 26.0, theme::PANEL_HI);
     painter.circle_stroke(center, 26.0, Stroke::new(1.0, theme::GREEN_DIM));
-    painter.text(center, Align2::CENTER_CENTER, "🐱", FontId::proportional(30.0), theme::GREEN);
+    theme::paint_cat(painter, Rect::from_center_size(center, egui::vec2(44.0, 44.0)), theme::GREEN);
 
     // Orbiting birds.
     for i in 0..total {
